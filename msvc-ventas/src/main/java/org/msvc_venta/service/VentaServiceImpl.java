@@ -1,10 +1,12 @@
 package org.msvc_venta.service;
 
+import org.msvc_venta.model.entity.ItemVenta;
 import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,13 +21,23 @@ public class VentaServiceImpl implements VentaService{
     }
 
     @Override
-    public Venta guardar(Venta venta) {
-        if(venta == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
-
-        //vamos guardando item a item que está relacionada a una venta
-        venta.getItemsVenta().forEach(item -> item.setVenta(venta));
-
-        return ventaRepository.save(venta);
+    public Venta guardar(Venta ventaRequent) {
+        if(ventaRequent == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
+        ventaRequent.setId(null);
+        Venta nuevaVenta = Venta.builder()
+                .fechaVenta(ventaRequent.getFechaVenta())
+                .direccion(ventaRequent.getDireccion())
+                .clieteId(ventaRequent.getClieteId())
+                .estado(ventaRequent.getEstado())
+                .itemsVenta(new ArrayList<>())
+                .build();
+        if(ventaRequent.getItemsVenta() != null) {
+            for (ItemVenta item : ventaRequent.getItemsVenta()){
+                item.calcularSubTotal();
+                nuevaVenta.agregarItem(item);
+            }
+        }
+        return ventaRepository.save(nuevaVenta);
     }
 
     @Override

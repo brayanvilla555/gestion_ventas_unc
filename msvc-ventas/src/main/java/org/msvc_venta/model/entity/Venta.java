@@ -46,6 +46,7 @@ public class Venta {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+
     public void calcularTotal() {
         this.total = itemsVenta.stream().mapToDouble(ItemVenta::getSubTotal).sum();
     }
