@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
 import org.msvc_venta.util.EstadoVenta;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,9 @@ public class Venta {
 
     @Column(nullable = false)
     private Long clieteId;
+
+    @Transient
+    private ClienteDto cliente;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemVenta> itemsVenta;

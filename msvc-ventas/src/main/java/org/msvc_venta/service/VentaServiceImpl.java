@@ -24,7 +24,16 @@ public class VentaServiceImpl implements VentaService{
 
     @Override
     public List<Venta> listVentas() {
-        return ventaRepository.findAll();
+        List<Venta> vetas = ventaRepository.findAll();
+        vetas.forEach(venta -> {
+            ClienteDto cliente = this.existeCliente(venta.getClieteId());
+            if(cliente.getId() != null) {
+                venta.setCliente(cliente);
+            }else{
+                venta.setCliente(null);
+            }
+        });
+        return vetas;
     }
 
     @Override
@@ -61,6 +70,12 @@ public class VentaServiceImpl implements VentaService{
         Venta buscarVenta = ventaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
 
+        ClienteDto clienteDto = this.existeCliente(venta.getClieteId());
+        if(clienteDto.getId() != null) {
+            buscarVenta.setClieteId(clienteDto.getId());
+            buscarVenta.setCliente(clienteDto);
+        }
+
         buscarVenta.setId(id);
         buscarVenta.setClieteId(venta.getClieteId());
         buscarVenta.setItemsVenta(venta.getItemsVenta());
@@ -75,8 +90,13 @@ public class VentaServiceImpl implements VentaService{
     public Venta buscarPorId(Long id) {
         if (id == null) throw new IllegalArgumentException("El id no puede ser nulo");
 
-        return  ventaRepository.findById(id)
+        Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
+
+        ClienteDto clienteDto = this.existeCliente(venta.getClieteId());
+        venta.setCliente(clienteDto);
+
+        return venta;
     }
 
     @Override
