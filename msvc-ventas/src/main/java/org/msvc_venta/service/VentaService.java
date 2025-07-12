@@ -1,5 +1,6 @@
 package org.msvc_venta.service;
 
+import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
 import org.msvc_venta.model.entity.Venta;
 
 import java.util.List;

@@ -1,19 +1,26 @@
 package org.msvc_venta.service;
 
+import org.msvc_venta.integration.clientes.client.ClienteClient;
+import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
 import org.msvc_venta.model.entity.ItemVenta;
 import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VentaServiceImpl implements VentaService{
 
     @Autowired
     private VentaRepository ventaRepository;
+
+    @Autowired
+    private ClienteClient clienteClient;
 
     @Override
     public List<Venta> listVentas() {
@@ -27,6 +34,7 @@ public class VentaServiceImpl implements VentaService{
         Venta nuevaVenta = Venta.builder()
                 .fechaVenta(ventaRequent.getFechaVenta())
                 .direccion(ventaRequent.getDireccion())
+                .clieteId(this.existeCliente(ventaRequent.getClieteId()).getId())
                 .clieteId(ventaRequent.getClieteId())
                 .estado(ventaRequent.getEstado())
                 .itemsVenta(new ArrayList<>())
@@ -38,6 +46,11 @@ public class VentaServiceImpl implements VentaService{
             }
         }
         return ventaRepository.save(nuevaVenta);
+    }
+
+    private ClienteDto existeCliente(long idCliente){
+        return clienteClient.buscarClientePorId(idCliente)
+                .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + idCliente + " no existe"));
     }
 
     @Override

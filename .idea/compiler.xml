@@ -17,8 +17,8 @@
         </processorPath>
         <module name="msvc-cobros" />
         <module name="msvc-productos" />
-        <module name="msvc-ventas" />
         <module name="msvc-caja" />
+        <module name="msvc-ventas" />
         <module name="msvc-clientes" />
       </profile>
     </annotationProcessing>
