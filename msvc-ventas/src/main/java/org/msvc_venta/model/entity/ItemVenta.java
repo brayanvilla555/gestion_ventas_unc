@@ -40,4 +40,20 @@ public class ItemVenta {
     public void calcularSubTotal() {
         this.subTotal = cantidad * precio;
     }
+
+    public Venta getVenta() {
+        return venta;
+    }
+
+    public void setVenta(Venta venta) {
+        this.venta = venta;
+    }
+
+    public Double getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(Double subTotal) {
+        this.subTotal = subTotal;
+    }
 }
