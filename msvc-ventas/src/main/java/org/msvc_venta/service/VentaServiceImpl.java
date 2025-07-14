@@ -2,8 +2,12 @@ package org.msvc_venta.service;
 
 import org.msvc_venta.integration.clientes.client.ClienteClient;
 import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
+import org.msvc_venta.integration.clientes.service.ClienteService;
+import org.msvc_venta.integration.cobros.model.dto.CobroDto;
+import org.msvc_venta.integration.cobros.service.CobroService;
 import org.msvc_venta.integration.productos.client.ProductoClient;
 import org.msvc_venta.integration.productos.model.dto.ProductoDto;
+import org.msvc_venta.integration.productos.service.ProductoService;
 import org.msvc_venta.model.entity.ItemVenta;
 import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
@@ -23,15 +27,19 @@ public class VentaServiceImpl implements VentaService{
     private VentaRepository ventaRepository;
 
     @Autowired
-    private ClienteClient clienteClient;
+    private ClienteService clienteService;
+
     @Autowired
-    private ProductoClient productoClient;
+    private ProductoService productoService;
+
+    @Autowired
+    private CobroService cobroService;
 
     @Override
     public List<Venta> listVentas() {
         List<Venta> vetas = ventaRepository.findAll();
         vetas.forEach(venta -> {
-            ClienteDto cliente = this.existeCliente(venta.getClieteId());
+            ClienteDto cliente = this.clienteService.existeCliente(venta.getClieteId());
             if(cliente.getId() != null) {
                 venta.setCliente(cliente);
             }else{
@@ -48,7 +56,9 @@ public class VentaServiceImpl implements VentaService{
         Venta nuevaVenta = Venta.builder()
                 .fechaVenta(ventaRequent.getFechaVenta())
                 .direccion(ventaRequent.getDireccion())
-                .clieteId(this.existeCliente(ventaRequent.getClieteId()).getId())
+                .clieteId(
+                        this.clienteService.existeCliente(ventaRequent.getClieteId()).getId()
+                )
                 .clieteId(ventaRequent.getClieteId())
                 .estado(ventaRequent.getEstado())
                 .itemsVenta(new ArrayList<>())
@@ -57,7 +67,7 @@ public class VentaServiceImpl implements VentaService{
         if(ventaRequent.getItemsVenta() != null) {
             for (ItemVenta item : ventaRequent.getItemsVenta()){
                 //consultamos para ver si ese producto existe
-                ProductoDto existeProducto = this.existeProducto(item.getProductoId());
+                ProductoDto existeProducto = this.productoService.existeProducto(item.getProductoId());
                 if(existeProducto == null) {
                     throw new IllegalArgumentException("El producto con el id: " + item.getProductoId() + " no existe");
                 }
@@ -73,17 +83,17 @@ public class VentaServiceImpl implements VentaService{
                 }
             }
         }
-         return ventaRepository.save(nuevaVenta);
-    }
 
-    private ClienteDto existeCliente(long idCliente){
-        return clienteClient.buscarClientePorId(idCliente)
-                .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + idCliente + " no existe"));
-    }
+        Venta venta = ventaRepository.save(nuevaVenta);
+        //registramos el pago si la venta
+        CobroDto nuevoCobro = CobroDto.builder()
+                .ventaId(venta.getId())
+                .montoTotal(venta.getTotal())
+                .observaciones("Procesando el pago")
+                .build();
+        cobroService.registrarCobro(nuevoCobro);
 
-    private ProductoDto existeProducto(long idProducto){
-        return productoClient.buscarProductoPorId(idProducto)
-                .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + idProducto + " no existe"));
+         return venta;
     }
 
     @Override
@@ -94,7 +104,7 @@ public class VentaServiceImpl implements VentaService{
         Venta buscarVenta = ventaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
 
-        ClienteDto clienteDto = this.existeCliente(venta.getClieteId());
+        ClienteDto clienteDto = this.clienteService.existeCliente(venta.getClieteId());
         if(clienteDto.getId() != null) {
             buscarVenta.setClieteId(clienteDto.getId());
             buscarVenta.setCliente(clienteDto);
@@ -117,7 +127,7 @@ public class VentaServiceImpl implements VentaService{
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
 
-        ClienteDto clienteDto = this.existeCliente(venta.getClieteId());
+        ClienteDto clienteDto = this.clienteService.existeCliente(venta.getClieteId());
         venta.setCliente(clienteDto);
 
         return venta;
@@ -135,10 +145,5 @@ public class VentaServiceImpl implements VentaService{
             return true;
         }
         return false;
-    }
-
-    public ProductoDto optenerProductoPorId(Long id){
-        return productoClient.buscarProductoPorId(id)
-                .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + id + " no existe"));
     }
 }
