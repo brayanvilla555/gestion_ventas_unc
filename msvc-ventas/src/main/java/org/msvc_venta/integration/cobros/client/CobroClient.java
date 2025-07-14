@@ -12,6 +12,6 @@ import java.util.Optional;
         url = "localhost:8093/"
 )
 public interface CobroClient {
-    @PostMapping("cobros")
+    @PostMapping("cobros/generarCobro")
     Optional<CobroDto> registrarCobro(@RequestBody CobroDto cobroDto);
 }
