@@ -2,6 +2,8 @@ package org.msvc_venta.service;
 
 import org.msvc_venta.integration.clientes.client.ClienteClient;
 import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
+import org.msvc_venta.integration.productos.client.ProductoClient;
+import org.msvc_venta.integration.productos.model.dto.ProductoDto;
 import org.msvc_venta.model.entity.ItemVenta;
 import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -21,6 +24,8 @@ public class VentaServiceImpl implements VentaService{
 
     @Autowired
     private ClienteClient clienteClient;
+    @Autowired
+    private ProductoClient productoClient;
 
     @Override
     public List<Venta> listVentas() {
@@ -48,18 +53,37 @@ public class VentaServiceImpl implements VentaService{
                 .estado(ventaRequent.getEstado())
                 .itemsVenta(new ArrayList<>())
                 .build();
+        //agregamos los items a la venta
         if(ventaRequent.getItemsVenta() != null) {
             for (ItemVenta item : ventaRequent.getItemsVenta()){
-                item.calcularSubTotal();
-                nuevaVenta.agregarItem(item);
+                //consultamos para ver si ese producto existe
+                ProductoDto existeProducto = this.existeProducto(item.getProductoId());
+                if(existeProducto == null) {
+                    throw new IllegalArgumentException("El producto con el id: " + item.getProductoId() + " no existe");
+                }
+                //verificamos si existe la cantidad en la tienda
+                boolean cantidadSuficiente = existeProducto.getStockTienda() >= item.getCantidad();
+                boolean precioCorrecto = Objects.equals(existeProducto.getPrecio(), item.getPrecio());
+                if(cantidadSuficiente && precioCorrecto){
+                    //calculamos sus montos
+                    item.calcularSubTotal();
+                    nuevaVenta.agregarItem(item);
+                } else{
+                    throw new IllegalArgumentException("No hay suficiente stock o precio es incorrecto del producto con id: " + item.getProductoId());
+                }
             }
         }
-        return ventaRepository.save(nuevaVenta);
+         return ventaRepository.save(nuevaVenta);
     }
 
     private ClienteDto existeCliente(long idCliente){
         return clienteClient.buscarClientePorId(idCliente)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + idCliente + " no existe"));
+    }
+
+    private ProductoDto existeProducto(long idProducto){
+        return productoClient.buscarProductoPorId(idProducto)
+                .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + idProducto + " no existe"));
     }
 
     @Override
@@ -111,5 +135,10 @@ public class VentaServiceImpl implements VentaService{
             return true;
         }
         return false;
+    }
+
+    public ProductoDto optenerProductoPorId(Long id){
+        return productoClient.buscarProductoPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + id + " no existe"));
     }
 }

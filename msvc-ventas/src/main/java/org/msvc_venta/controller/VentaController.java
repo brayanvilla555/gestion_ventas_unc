@@ -81,5 +81,4 @@ public class VentaController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
-
 }
