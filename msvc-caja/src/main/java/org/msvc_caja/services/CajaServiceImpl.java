@@ -1,14 +1,12 @@
 package org.msvc_caja.services;
 
 import org.msvc_caja.integration.clients.CobroClientRest;
-import org.msvc_caja.models.Cobro;
+import org.msvc_caja.models.CobroDTO;
 import org.msvc_caja.models.entity.Caja;
 import org.msvc_caja.repositories.CajaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,7 +38,16 @@ public class CajaServiceImpl implements CajaService{
         cajaRepository.deleteById(id);
     }
 
+    @Override
+    public Optional<Caja> cajaAbierta() {
+        List<Caja> cajas = (List<Caja>) cajaRepository.findAll();
+        if (!cajas.isEmpty()){
+            //La ultima caja es la que siempre va estar abierta
+            return Optional.of(cajas.get(cajas.size()-1));
+        }
 
+        return Optional.empty();
+    }
 
 //
 ////-------------------------------------------------------------------------------------//
@@ -50,14 +57,34 @@ public class CajaServiceImpl implements CajaService{
     public List<Caja> cajaListCobros() {
         List<Caja> cajas = (List<Caja>) cajaRepository.findAll();
         for (Caja caja: cajas){
-            for (Cobro cobro: cobroClientRest.listar()){
-                if(cobro.getCajaId().equals(caja.getId())){
-                    caja.addCobro(cobro);
+            for (CobroDTO cobroDTO : cobroClientRest.listar()){
+                if(cobroDTO.getCajaId().equals(caja.getId())){
+                    caja.addCobro(cobroDTO);
                 }
             }
         }
         return cajas;
     }
+
+    @Override
+    public Optional<CobroDTO> cobrar(CobroDTO cobroDTO) {
+        CobroDTO cobro = cobroClientRest.detalle(cobroDTO.getId());
+        cobro.setMetodoPago(cobroDTO.getMetodoPago());
+        cobro.setObservaciones(cobroDTO.getObservaciones());
+
+        cobroClientRest.cobrar(cobro);
+        Optional<Caja> caja = cajaRepository.findById(cobroDTO.getCajaId());
+        if (caja.isPresent()){
+            Caja cajaDB = caja.get();
+            cajaDB.setSaldoFinal(cajaDB.getSaldoFinal()+cobro.getMontoTotal());
+            cajaRepository.save(cajaDB);
+        }
+
+
+        return Optional.of(cobro);
+    }
+
+
 
 
 }

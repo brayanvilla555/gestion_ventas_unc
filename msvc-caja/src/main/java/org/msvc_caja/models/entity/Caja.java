@@ -2,7 +2,7 @@ package org.msvc_caja.models.entity;
 
 
 import jakarta.persistence.*;
-import org.msvc_caja.models.Cobro;
+import org.msvc_caja.models.CobroDTO;
 import org.msvc_caja.util.EstadoCaja;
 
 import java.time.LocalDateTime;
@@ -29,10 +29,10 @@ public class Caja {
     private String observaciones;
 
     @Transient
-    private List<Cobro> listaCobros;
+    private List<CobroDTO> listaCobroDTOS;
 
     public Caja(){
-        listaCobros = new ArrayList<>();
+        listaCobroDTOS = new ArrayList<>();
     }
 
     public Long getId() {
@@ -91,15 +91,15 @@ public class Caja {
         this.observaciones = observaciones;
     }
 
-    public List<Cobro> getListaCobros() {
-        return listaCobros;
+    public List<CobroDTO> getListaCobros() {
+        return listaCobroDTOS;
     }
 
-    public void setListaCobros(List<Cobro> listaCobros) {
-        this.listaCobros = listaCobros;
+    public void setListaCobros(List<CobroDTO> listaCobroDTOS) {
+        this.listaCobroDTOS = listaCobroDTOS;
     }
 
-    public void addCobro(Cobro cobro){
-        listaCobros.add(cobro);
+    public void addCobro(CobroDTO cobroDTO){
+        listaCobroDTOS.add(cobroDTO);
     }
 }

@@ -3,7 +3,7 @@ package org.msvc_cobro.services;
 import org.msvc_cobro.integration.clients.CajaClientRest;
 import org.msvc_cobro.integration.clients.VentaClientRest;
 import org.msvc_cobro.models.Caja;
-import org.msvc_cobro.models.Venta;
+import org.msvc_cobro.models.VentaDTO;
 import org.msvc_cobro.models.entity.Cobro;
 import org.msvc_cobro.repositories.CobroRepository;
 import org.msvc_cobro.utils.EstadoCobro;
@@ -49,27 +49,26 @@ public class CobroServiceImpl implements CobroService{
 
     //Metodos remotos
     @Override
-    public Optional<Cobro> generarCobro(Venta venta, Long idCaja) {
+    public Optional<Cobro> generarCobro(VentaDTO ventaDTO) {
         // validamos que la venta exista
-        Venta ventaDB = ventaClientRest.detalle(venta.getId());
+        VentaDTO ventaDB = ventaClientRest.detalle(ventaDTO.getVentaId());
         //Validamos que la caja exista
-        Caja cajaDB = cajaClientRest.detalle(idCaja);
 
-        if(cajaDB.getEstado().toString().equals("ABIERTA")){
-            Cobro nuevoCobro = new Cobro();
-            nuevoCobro.setVentaId(ventaDB.getId());
-            nuevoCobro.setCajaId(cajaDB.getId());
-            nuevoCobro.setMontoTotal(ventaDB.getTotal());
-            nuevoCobro.setEstadoCobro(EstadoCobro.valueOf("PENDIENTE"));
+        //validar que una venta solo tenga un cobro y un cobro pertenesca solo a una venta
 
-            //private MetodoPago metodoPago;
-            //private LocalDateTime fechaPago;
-            //private String observaciones;
+        Caja cajaDB = cajaClientRest.cajaAbierta();
+        Cobro nuevoCobro = new Cobro();
+        nuevoCobro.setVentaId(ventaDTO.getVentaId());
+        nuevoCobro.setCajaId(cajaDB.getId());
+        nuevoCobro.setMontoTotal(ventaDTO.getMontoTotal());
+        nuevoCobro.setEstadoCobro(EstadoCobro.valueOf("PENDIENTE"));
+        nuevoCobro.setObservaciones(ventaDTO.getObservaciones());
+        //private MetodoPago metodoPago;
+        //private LocalDateTime fechaPago;
+        //private String observaciones;
 
-            return Optional.of(cobroRepository.save(nuevoCobro));
-        }else{
-            return Optional.empty();
-        }
+        return Optional.of(cobroRepository.save(nuevoCobro));
+
     }
 
 
@@ -78,16 +77,16 @@ public class CobroServiceImpl implements CobroService{
         Optional<Cobro> cobroOp= cobroRepository.findById(cobro.getId());
         if(cobroOp.isPresent()){
             Cobro cobroDB = cobroOp.get();
-            Venta venta = ventaClientRest.detalle(cobroDB.getVentaId());
+            VentaDTO ventaDTO = ventaClientRest.detalle(cobroDB.getVentaId());
             Caja caja = cajaClientRest.detalle(cobroDB.getCajaId());
 
-            cobroDB.setEstadoCobro(EstadoCobro.valueOf(cobro.getEstadoCobro().toString()));
+            cobroDB.setEstadoCobro(EstadoCobro.COBRADO);
             cobroDB.setMetodoPago(MetodoPago.valueOf(cobro.getMetodoPago().toString()));
             cobroDB.setFechaPago(LocalDateTime.now());
-            cobroDB.setObservaciones(cobro.getObservaciones());
+            cobroDB.setObservaciones(cobroDB.getObservaciones() + " " + cobro.getObservaciones());
 
-            caja.setSaldoFinal(caja.getSaldoFinal()+cobro.getMontoTotal());
-            cajaClientRest.actualizarMontoFinalCaja(caja, caja.getId());
+//            caja.setSaldoFinal(caja.getSaldoFinal()+ventaDTO.getMontoTotal());
+//            cajaClientRest.actualizarMontoFinalCaja(caja, caja.getId());
             return Optional.of(cobroRepository.save(cobroDB));
         }else{
             return Optional.empty();

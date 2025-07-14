@@ -3,8 +3,7 @@ package org.msvc_caja.controllers;
 
 
 import feign.FeignException;
-import org.msvc_caja.models.Cobro;
-import org.msvc_caja.models.Venta;
+import org.msvc_caja.models.CobroDTO;
 import org.msvc_caja.models.entity.Caja;
 import org.msvc_caja.services.CajaService;
 import org.msvc_caja.util.EstadoCaja;
@@ -61,6 +60,17 @@ public class CajaController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/cajaabierta")
+    public ResponseEntity<?> retornarCajaAbierta(){
+        Optional<Caja> cajaOp= cajaService.cajaAbierta();
+        if (cajaOp.isPresent()){
+            return  ResponseEntity.ok(cajaOp.get());
+        }else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
 
     @GetMapping("/cajaConCobros")
     public ResponseEntity<?> cajaConListaCobros(){
@@ -68,6 +78,15 @@ public class CajaController {
             return ResponseEntity.ok(cajaService.cajaListCobros());
         }catch (FeignException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existen cobros" + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/cobrar")
+    public ResponseEntity<?> cobrar(@RequestBody CobroDTO cobroDTO){
+        try{
+            return ResponseEntity.ok(cajaService.cobrar(cobroDTO));
+        }catch (FeignException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existe ese cobroYOEL" + e.getMessage()));
         }
     }
 
