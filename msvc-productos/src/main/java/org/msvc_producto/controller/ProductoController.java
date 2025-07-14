@@ -39,10 +39,7 @@ public class ProductoController {
     @PostMapping
     public ResponseEntity<?> crear(@Valid @RequestBody Producto producto) {
         Producto productoDB = service.guardar(producto);
-        producto.setFechaActualizacion(LocalDateTime.now());
-        producto.setFechaCreacion(LocalDateTime.now());
-        Producto ObjetoProducto = service.guardar(producto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ObjetoProducto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productoDB);
     }
 
     //Editar producto
@@ -54,7 +51,7 @@ public class ProductoController {
             productoDB.setNombre(producto.getNombre());
             productoDB.setPrecio(producto.getPrecio());
             productoDB.setStockAlmacen(producto.getStockAlmacen());
-            productoDB.setStockAlmacen(producto.getStockTienda());
+            productoDB.setStockTienda(producto.getStockTienda());
             productoDB.setFechaActualizacion(LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.CREATED).body(service.guardar(productoDB));
         }
@@ -72,67 +69,53 @@ public class ProductoController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/{id}/aumentar-almacen")
+    //aumentar stock de almacen
+    @PutMapping("/{id}/aumentar-stock-almacen")
     public ResponseEntity<?> aumentarStockAlmacen(@PathVariable Long id, @RequestParam int cantidad) {
-        Optional<Producto> op = service.buscarPorId(id);
-        if (op.isPresent()) {
-            Producto producto = op.get();
-            producto.setStockAlmacen(producto.getStockAlmacen() + cantidad);
-            producto.setFechaActualizacion(LocalDateTime.now());
-            return ResponseEntity.ok(service.guardar(producto));
+        Optional<Producto> productoActualizado = service.aumentarStockAlmacen(id, cantidad);
+        if (productoActualizado.isPresent()) {
+            return ResponseEntity.ok(productoActualizado.get());
         }
         return ResponseEntity.notFound().build();
     }
 
+    //diminuir stock de tienda
+    @PutMapping("/{id}/disminuir-stock-tienda")
+    public ResponseEntity<?> disminuirStockTienda(@PathVariable Long id, @RequestParam int cantidad) {
+        Optional<Producto> productoActualizado = service.disminuirStockTienda(id, cantidad);
+        if (productoActualizado.isPresent()) {
+            return ResponseEntity.ok(productoActualizado.get());
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    //transferir stock de tienda
     @PutMapping("/{id}/transferir-stock")
     public ResponseEntity<?> transferirStock(@PathVariable Long id, @RequestParam int cantidad) {
-        Optional<Producto> op = service.buscarPorId(id);
-        if (op.isPresent()) {
-            Producto producto = op.get();
-            if (producto.getStockAlmacen() >= cantidad) {
-                producto.setStockAlmacen(producto.getStockAlmacen() - cantidad);
-                producto.setStockTienda(producto.getStockTienda() + cantidad);
-                producto.setFechaActualizacion(LocalDateTime.now());
-                return ResponseEntity.ok(service.guardar(producto));
-            } else {
-                return ResponseEntity.badRequest().body("Stock en almacén insuficiente");
-            }
+        Optional<Producto> productoTransferido= service.transferirStockTienda(id, cantidad);
+        if(productoTransferido.isPresent()) {
+            return ResponseEntity.ok(productoTransferido.get());
+        }
+            return ResponseEntity.notFound().build();
+    }
+    // Actualizar estado del producto
+    @PutMapping("/{id}/actualizar-estado")
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestParam EstadoProducto estado) {
+        Optional<Producto> productoActualizado = service.actualizarEstado(id, estado);
+        if (productoActualizado.isPresent()) {
+            return ResponseEntity.ok(productoActualizado.get());
         }
         return ResponseEntity.notFound().build();
     }
-
+    // Actualizar precio del producto
     @PutMapping("/{id}/actualizar-precio")
-    public ResponseEntity<?> actualizarPrecio(@PathVariable Long id, @RequestParam double nuevoPrecio) {
-        Optional<Producto> op = service.buscarPorId(id);
-        if (op.isPresent()) {
-            Producto producto = op.get();
-            if (nuevoPrecio > 0) {
-                producto.setPrecio(nuevoPrecio);
-                producto.setFechaActualizacion(LocalDateTime.now());
-                return ResponseEntity.ok(service.guardar(producto));
-            } else {
-                return ResponseEntity.badRequest().body("El precio debe ser mayor a 0");
-            }
+    public ResponseEntity<?> actualizarPrecio(@PathVariable Long id, @RequestParam double precio) {
+        Optional<Producto> productoActualizado = service.actualizarPrecio(id, precio);
+        if (productoActualizado.isPresent()) {
+            return ResponseEntity.ok(productoActualizado.get());
         }
         return ResponseEntity.notFound().build();
     }
-    @PutMapping("/{id}/cambiar-estado")
-    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestParam String estado) {
-        Optional<Producto> op = service.buscarPorId(id);
-        if (op.isPresent()) {
-            Producto producto = op.get();
-            try {
-                EstadoProducto estadoEnum = EstadoProducto.valueOf(estado.toUpperCase());
-                producto.setEstado(estadoEnum);
-                producto.setFechaActualizacion(LocalDateTime.now());
-                return ResponseEntity.ok(service.guardar(producto));
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body("Estado inválido. Use ACTIVO o INACTIVO.");
-            }
-        }
-        return ResponseEntity.notFound().build();
-    }
-
 
 }
 

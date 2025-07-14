@@ -27,6 +27,8 @@ public class Producto {
     @NotNull
     @Min(0)
     private Integer stockAlmacen;
+
+    @Enumerated(EnumType.STRING)
     private EstadoProducto estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -109,6 +111,66 @@ public class Producto {
 
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
+    }
+
+    public void aumentarStockAlmacen(int cantidad) {
+        if (cantidad > 0) {
+            if (this.stockAlmacen == null) {
+                this.stockAlmacen = 0;
+            }
+            this.stockAlmacen += cantidad;
+        }
+    }
+
+    public void disminuirStockTienda(int cantidad) {
+        if (cantidad > 0) {
+            if (this.stockTienda == null) {
+                this.stockTienda = 0;
+            }
+            if (this.stockTienda >= cantidad) {
+                this.stockTienda -= cantidad;
+            }
+        }
+    }
+
+    public void transferirStock(int cantidad) {
+        if (cantidad > 0) {
+            if (this.stockAlmacen == null) {
+                this.stockAlmacen = 0;
+            }
+            if (this.stockTienda == null) {
+                this.stockTienda = 0;
+            }
+            if (this.stockAlmacen >= cantidad) {
+                this.stockAlmacen -= cantidad;
+                this.stockTienda += cantidad;
+            }
+        }
+    }
+
+    public void actualizarEstado(EstadoProducto nuevoEstado) {
+        if (nuevoEstado != null) {
+            this.estado = nuevoEstado;
+        }
+    }
+
+    public void actualizarPrecio(double nuevoPrecio) {
+        if (nuevoPrecio > 0) {
+            this.precio = nuevoPrecio;
+        }
+    }
+    @PrePersist
+    public void prePersist() {
+        if (this.estado == null) {
+            this.estado = EstadoProducto.ACTIVO; // Asignar estado por defecto
+        }
+        this.fechaCreacion = LocalDateTime.now();
+        this.fechaActualizacion = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
     }
 
 }
