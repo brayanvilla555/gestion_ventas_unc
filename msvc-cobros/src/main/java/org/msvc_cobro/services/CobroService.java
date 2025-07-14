@@ -1,6 +1,6 @@
 package org.msvc_cobro.services;
 
-import org.msvc_cobro.models.Venta;
+import org.msvc_cobro.models.VentaDTO;
 import org.msvc_cobro.models.entity.Cobro;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public interface CobroService {
     Optional<Cobro> porId(Long id);
     void eliminar(Long id);
 
-    Optional<Cobro> generarCobro(Venta venta, Long id);
+    Optional<Cobro> generarCobro(VentaDTO ventaDTO);
 
-    Optional<Cobro> cobrar(Cobro idVenta);
+    Optional<Cobro> cobrar(Cobro cobro);
 }

@@ -15,7 +15,7 @@ public class Cobro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "caja_id", unique = true)
+    @Column(name = "caja_id")
     private Long cajaId;
 
     @Column(name = "venta_id", unique = true)

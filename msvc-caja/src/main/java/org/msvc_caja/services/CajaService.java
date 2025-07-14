@@ -1,9 +1,7 @@
 package org.msvc_caja.services;
 
-import org.msvc_caja.models.Cobro;
-import org.msvc_caja.models.Venta;
+import org.msvc_caja.models.CobroDTO;
 import org.msvc_caja.models.entity.Caja;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +16,7 @@ public interface CajaService {
     //Metodos remotos
     List<Caja> cajaListCobros();
 
+    Optional<CobroDTO> cobrar(CobroDTO idcobro);
+
+    Optional<Caja> cajaAbierta();
 }

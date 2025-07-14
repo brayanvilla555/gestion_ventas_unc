@@ -2,7 +2,7 @@ package org.msvc_cobro.controllers;
 
 
 import feign.FeignException;
-import org.msvc_cobro.models.Venta;
+import org.msvc_cobro.models.VentaDTO;
 import org.msvc_cobro.models.entity.Cobro;
 import org.msvc_cobro.services.CobroService;
 import org.msvc_cobro.utils.EstadoCobro;
@@ -53,7 +53,6 @@ public class CobroController {
             cobroDB.setEstadoCobro(EstadoCobro.valueOf(cobro.getEstadoCobro().toString()));
             cobroDB.setMontoTotal(cobro.getMontoTotal());
             cobroDB.setMetodoPago(MetodoPago.valueOf(cobro.getMetodoPago().toString()));
-            cobroDB.setEstadoCobro(cobro.getEstadoCobro());
             cobroDB.setFechaPago(cobro.getFechaPago());
             cobroDB.setObservaciones(cobro.getObservaciones());
 
@@ -82,11 +81,11 @@ public class CobroController {
 
 
     //MetodosRemotos para consultar si existe la venta y la caja
-    @PostMapping("/generarCobro/{idcaja}")
-    public ResponseEntity<?> generarCobro(@RequestBody Venta venta, @PathVariable Long idcaja){
+    @PostMapping("/generarCobro")
+    public ResponseEntity<?> generarCobro(@RequestBody VentaDTO ventaDTO){
         Optional<Cobro> cobroOp;
         try{
-            cobroOp = cobroService.generarCobro(venta, idcaja);
+            cobroOp = cobroService.generarCobro(ventaDTO);
         }catch (FeignException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje",
                     "No existen la venta o caja proporcionado" + e.getMessage()));

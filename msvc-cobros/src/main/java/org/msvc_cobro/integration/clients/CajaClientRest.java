@@ -15,6 +15,7 @@ public interface CajaClientRest {
     @GetMapping("/{id}")
     Caja detalle(@PathVariable Long id);
 
-    @PutMapping("/{id}")
-    void actualizarMontoFinalCaja(@RequestBody Caja caja, @PathVariable Long id);
+    @GetMapping("/cajaabierta")
+    Caja cajaAbierta();
+
 }
