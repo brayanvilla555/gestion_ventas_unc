@@ -15,4 +15,10 @@ public class ProductoServiceImpl implements ProductoService{
         return productoClient.buscarProductoPorId(idProducto)
                 .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + idProducto + " no existe"));
     }
+
+    public ProductoDto actualizarStockTienda(long idProducto, int cantidad){
+        return productoClient.actualizarStockTienda(idProducto, cantidad)
+                .orElseThrow(() -> new IllegalArgumentException("El producto con el id: " + idProducto + " no existe"));
+    }
+
 }

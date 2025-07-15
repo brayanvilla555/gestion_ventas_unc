@@ -13,6 +13,7 @@ import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
@@ -78,6 +79,8 @@ public class VentaServiceImpl implements VentaService{
                     //calculamos sus montos
                     item.calcularSubTotal();
                     nuevaVenta.agregarItem(item);
+                    //actualizamos el stock en la tienda
+                    this.actualizarStockTienda(item.getProductoId(), item.getCantidad());
                 } else{
                     throw new IllegalArgumentException("No hay suficiente stock o precio es incorrecto del producto con id: " + item.getProductoId());
                 }
@@ -94,6 +97,10 @@ public class VentaServiceImpl implements VentaService{
         cobroService.registrarCobro(nuevoCobro);
 
          return venta;
+    }
+
+    private void actualizarStockTienda(Long idProducto, int cantidad){
+        productoService.actualizarStockTienda(idProducto, cantidad);
     }
 
     @Override

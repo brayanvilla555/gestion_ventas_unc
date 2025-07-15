@@ -4,6 +4,8 @@ import org.msvc_venta.integration.productos.model.dto.ProductoDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
@@ -15,4 +17,7 @@ import java.util.Optional;
 public interface ProductoClient {
     @GetMapping("producto/{id}")
     Optional<ProductoDto> buscarProductoPorId(@PathVariable Long id);
+
+    @PutMapping("producto/{id}/disminuir-stock-tienda")
+    Optional<ProductoDto> actualizarStockTienda(@PathVariable Long id, @RequestParam int cantidad);
 }
