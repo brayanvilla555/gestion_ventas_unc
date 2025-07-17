@@ -1,6 +1,6 @@
 package org.msvc_caja.services;
 
-import org.msvc_caja.models.CobroDTO;
+import org.msvc_caja.models.Cobro;
 import org.msvc_caja.models.entity.Caja;
 
 import java.util.List;
@@ -16,7 +16,9 @@ public interface CajaService {
     //Metodos remotos
     List<Caja> cajaListCobros();
 
-    Optional<CobroDTO> cobrar(CobroDTO idcobro);
+    Optional<Cobro> cobrar(Cobro idcobro);
 
     Optional<Caja> cajaAbierta();
+
+    Double calcularSaldo(Long id);
 }

@@ -3,7 +3,7 @@ package org.msvc_caja.controllers;
 
 
 import feign.FeignException;
-import org.msvc_caja.models.CobroDTO;
+import org.msvc_caja.models.Cobro;
 import org.msvc_caja.models.entity.Caja;
 import org.msvc_caja.services.CajaService;
 import org.msvc_caja.util.EstadoCaja;
@@ -60,6 +60,17 @@ public class CajaController {
             return ResponseEntity.notFound().build();
         }
     }
+    @DeleteMapping("/{id}")
+    public  ResponseEntity<?> eliminar(@PathVariable Long id){
+        Optional<Caja> cursoOp = cajaService.porId(id);
+        if(cursoOp.isPresent()){
+            cajaService.eliminar(id);
+            return ResponseEntity.noContent().build();
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @GetMapping("/cajaabierta")
     public ResponseEntity<?> retornarCajaAbierta(){
         Optional<Caja> cajaOp= cajaService.cajaAbierta();
@@ -70,6 +81,46 @@ public class CajaController {
         }
     }
 
+    @PutMapping("/cerrar/{id}")
+    public ResponseEntity<String> cerrarCaja(@PathVariable Long id){
+        Optional<Caja> cajaOp = cajaService.porId(id);
+        if(cajaOp.isPresent()){
+            Caja cajaDB = cajaOp.get();
+            cajaDB.setSaldoFinal(cajaService.calcularSaldo(id));
+            cajaDB.setEstado(EstadoCaja.CERRADA);
+            cajaService.guardar(cajaDB);
+            return ResponseEntity.ok("Caja cerrada");
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/abierta/{id}")
+    public ResponseEntity<String> estaAbierta(@PathVariable Long id){
+        Optional<Caja> cajaOp = cajaService.porId(id);
+        if(cajaOp.isPresent()){
+            Caja cajaDB = cajaOp.get();
+            if (cajaDB.getEstado() == EstadoCaja.ABIERTA){
+                return ResponseEntity.ok("La caja esta abierta");
+            }else {
+                return ResponseEntity.ok("La caja esta cerraa");
+            }
+
+
+        }else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //Metodos remotos
+    @GetMapping("/calcularSaldo/{id}")
+    public ResponseEntity<?> calcularSaldo(@PathVariable Long id){
+        try {
+            return ResponseEntity.ok(cajaService.calcularSaldo(id).toString());
+        }catch (FeignException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existen cobros" + e.getMessage()));
+        }
+    }
 
 
     @GetMapping("/cajaConCobros")
@@ -81,9 +132,8 @@ public class CajaController {
         }
     }
 
-
     @PutMapping("/cobrar")
-    public ResponseEntity<?> cobrar(@RequestBody CobroDTO cobroDTO){
+    public ResponseEntity<?> cobrar(@RequestBody Cobro cobroDTO){
         try{
             return ResponseEntity.ok(cajaService.cobrar(cobroDTO));
         }catch (FeignException e){

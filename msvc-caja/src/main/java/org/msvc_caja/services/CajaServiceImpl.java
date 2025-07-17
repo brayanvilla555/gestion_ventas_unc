@@ -1,7 +1,7 @@
 package org.msvc_caja.services;
 
 import org.msvc_caja.integration.clients.CobroClientRest;
-import org.msvc_caja.models.CobroDTO;
+import org.msvc_caja.models.Cobro;
 import org.msvc_caja.models.entity.Caja;
 import org.msvc_caja.repositories.CajaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +48,7 @@ public class CajaServiceImpl implements CajaService{
         return Optional.empty();
     }
 
+
 //
 ////-------------------------------------------------------------------------------------//
 ////-------------------------------------------------------------------------------------//
@@ -56,7 +57,7 @@ public class CajaServiceImpl implements CajaService{
     public List<Caja> cajaListCobros() {
         List<Caja> cajas = (List<Caja>) cajaRepository.findAll();
         for (Caja caja: cajas){
-            for (CobroDTO cobroDTO : cobroClientRest.listar()){
+            for (Cobro cobroDTO : cobroClientRest.listar()){
                 if(cobroDTO.getCajaId() != null && cobroDTO.getCajaId().equals(caja.getId()) ){
                     caja.addCobro(cobroDTO);
                 }
@@ -66,10 +67,29 @@ public class CajaServiceImpl implements CajaService{
     }
 
 
+    @Override
+    public Double calcularSaldo(Long id) {
+        List<Cobro> cobros = cobroClientRest.listar();
+        Optional<Caja> cajaOp = cajaRepository.findById(id);
+        Double monto= 0.0;
+        if (cajaOp.isPresent()){
+
+            for (Cobro cobro: cobros){
+                if(cobro.getCajaId() != null && cobro.getCajaId() == id){
+                    monto += cobro.getMontoTotal();
+                }
+            }
+            monto += cajaOp.get().getSaldoInicial();
+        }
+
+        return monto;
+    }
+
+
 
     @Override
-    public Optional<CobroDTO> cobrar(CobroDTO cobroDTO) {
-        CobroDTO cobro = cobroClientRest.detalle(cobroDTO.getId());
+    public Optional<Cobro> cobrar(Cobro cobroDTO) {
+        Cobro cobro = cobroClientRest.detalle(cobroDTO.getId());
         cobro.setCajaId(cobroDTO.getCajaId());
         cobro.setMetodoPago(cobroDTO.getMetodoPago());
         cobro.setObservaciones(cobroDTO.getObservaciones());

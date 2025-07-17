@@ -2,7 +2,7 @@ package org.msvc_caja.models;
 
 import org.msvc_caja.util.MetodoPago;
 
-public class CobroDTO {
+public class Cobro {
     private Long id;
     private Long cajaId;
     private Double montoTotal;

@@ -1,10 +1,9 @@
 package org.msvc_cobro.services;
 
-import jakarta.validation.constraints.Negative;
 import org.msvc_cobro.integration.clients.CajaClientRest;
 import org.msvc_cobro.integration.clients.VentaClientRest;
 import org.msvc_cobro.models.Caja;
-import org.msvc_cobro.models.VentaDTO;
+import org.msvc_cobro.models.Venta;
 import org.msvc_cobro.models.entity.Cobro;
 import org.msvc_cobro.repositories.CobroRepository;
 import org.msvc_cobro.utils.EstadoCobro;
@@ -53,9 +52,9 @@ public class CobroServiceImpl implements CobroService{
 
     //Metodos remotos
     @Override
-    public Optional<Cobro> generarCobro(VentaDTO ventaDTO) {
+    public Optional<Cobro> generarCobro(Venta ventaDTO) {
         // validamos que la venta exista
-        VentaDTO ventaDB = ventaClientRest.detalle(ventaDTO.getVentaId());
+        Venta ventaDB = ventaClientRest.detalle(ventaDTO.getVentaId());
 
         //validar que una venta solo tenga un cobro y un cobro pertenesca solo a una venta
         Cobro nuevoCobro = new Cobro();
