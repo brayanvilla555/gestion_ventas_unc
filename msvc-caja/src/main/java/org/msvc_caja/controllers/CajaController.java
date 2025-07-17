@@ -28,7 +28,7 @@ public class CajaController {
         return ResponseEntity.ok(cajaService.listar());
     }
     @PostMapping
-    public  ResponseEntity<?> guardar(@RequestBody Caja caja){
+    public  ResponseEntity<Caja> guardar(@RequestBody Caja caja){
         return ResponseEntity.status(HttpStatus.CREATED).body(cajaService.guardar(caja));
     }
     @GetMapping("/{id}")
@@ -41,7 +41,7 @@ public class CajaController {
         }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@RequestBody Caja caja,@PathVariable Long id){
+    public ResponseEntity<Caja> editar(@RequestBody Caja caja,@PathVariable Long id){
         Optional<Caja> cajaOp = cajaService.porId(id);
         if(cajaOp.isPresent()){
             Caja cajaDB = cajaOp.get();
@@ -81,13 +81,15 @@ public class CajaController {
         }
     }
 
+
     @PutMapping("/cobrar")
     public ResponseEntity<?> cobrar(@RequestBody CobroDTO cobroDTO){
         try{
             return ResponseEntity.ok(cajaService.cobrar(cobroDTO));
         }catch (FeignException e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existe ese cobroYOEL" + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existe esa caja" + e.getMessage()));
         }
     }
+
 
 }

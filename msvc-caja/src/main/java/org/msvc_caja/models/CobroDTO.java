@@ -50,4 +50,5 @@ public class CobroDTO {
     public void setMontoTotal(Double montoTotal) {
         this.montoTotal = montoTotal;
     }
+
 }

@@ -15,4 +15,6 @@ public interface CobroService {
     Optional<Cobro> generarCobro(VentaDTO ventaDTO);
 
     Optional<Cobro> cobrar(Cobro cobro);
+
+    List<Cobro> cobrosPorCobrar();
 }

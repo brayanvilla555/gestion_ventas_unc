@@ -45,7 +45,6 @@ public class CajaServiceImpl implements CajaService{
             //La ultima caja es la que siempre va estar abierta
             return Optional.of(cajas.get(cajas.size()-1));
         }
-
         return Optional.empty();
     }
 
@@ -58,7 +57,7 @@ public class CajaServiceImpl implements CajaService{
         List<Caja> cajas = (List<Caja>) cajaRepository.findAll();
         for (Caja caja: cajas){
             for (CobroDTO cobroDTO : cobroClientRest.listar()){
-                if(cobroDTO.getCajaId().equals(caja.getId())){
+                if(cobroDTO.getCajaId() != null && cobroDTO.getCajaId().equals(caja.getId()) ){
                     caja.addCobro(cobroDTO);
                 }
             }
@@ -66,25 +65,24 @@ public class CajaServiceImpl implements CajaService{
         return cajas;
     }
 
+
+
     @Override
     public Optional<CobroDTO> cobrar(CobroDTO cobroDTO) {
         CobroDTO cobro = cobroClientRest.detalle(cobroDTO.getId());
+        cobro.setCajaId(cobroDTO.getCajaId());
         cobro.setMetodoPago(cobroDTO.getMetodoPago());
         cobro.setObservaciones(cobroDTO.getObservaciones());
-
         cobroClientRest.cobrar(cobro);
+
+        //validar que un cobro solo se cancele una ves, de lo contrario enviar error:
+
         Optional<Caja> caja = cajaRepository.findById(cobroDTO.getCajaId());
         if (caja.isPresent()){
             Caja cajaDB = caja.get();
             cajaDB.setSaldoFinal(cajaDB.getSaldoFinal()+cobro.getMontoTotal());
             cajaRepository.save(cajaDB);
         }
-
-
         return Optional.of(cobro);
     }
-
-
-
-
 }

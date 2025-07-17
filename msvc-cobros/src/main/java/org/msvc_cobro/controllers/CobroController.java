@@ -105,13 +105,18 @@ public class CobroController {
         try {
             cobroOp = cobroService.cobrar(cobro);
         }catch (FeignException e){
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existe un cobro asociado a esa venta" + e.getMessage()));
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Mensaje", "No existe la caja proporcionada" + e.getMessage()));
         }
         if(cobroOp.isPresent()){
             return ResponseEntity.status(HttpStatus.CREATED).body(cobroOp.get());
         }
         return ResponseEntity.notFound().build();
 
+    }
+
+    @GetMapping("/porcobrar")
+    public ResponseEntity<List<Cobro>> listaCobrosPorCobrar(){
+        return  ResponseEntity.ok(cobroService.cobrosPorCobrar());
     }
 
     //cajas con lista de cobros
