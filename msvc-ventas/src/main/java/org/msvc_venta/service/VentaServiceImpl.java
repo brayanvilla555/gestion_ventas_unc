@@ -1,11 +1,9 @@
 package org.msvc_venta.service;
 
-import org.msvc_venta.integration.clientes.client.ClienteClient;
 import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
 import org.msvc_venta.integration.clientes.service.ClienteService;
 import org.msvc_venta.integration.cobros.model.dto.CobroDto;
 import org.msvc_venta.integration.cobros.service.CobroService;
-import org.msvc_venta.integration.productos.client.ProductoClient;
 import org.msvc_venta.integration.productos.model.dto.ProductoDto;
 import org.msvc_venta.integration.productos.service.ProductoService;
 import org.msvc_venta.model.entity.ItemVenta;
@@ -13,13 +11,10 @@ import org.msvc_venta.model.entity.Venta;
 import org.msvc_venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class VentaServiceImpl implements VentaService{
@@ -53,6 +48,16 @@ public class VentaServiceImpl implements VentaService{
     @Override
     public Venta guardar(Venta ventaRequent) {
         if(ventaRequent == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
+
+        if(ventaRequent.getClieteId() == null && ventaRequent.getCliente() != null){
+            ventaRequent.getCliente().setId(null);
+            ClienteDto clienteDto = this.clienteService.guardarCliente(ventaRequent.getCliente());
+            if(clienteDto.getId() != null) {
+                ventaRequent.setClieteId(clienteDto.getId());
+            }else{
+                throw new IllegalArgumentException("El cliente no puede ser nulo");
+            }
+        }
         ventaRequent.setId(null);
         Venta nuevaVenta = Venta.builder()
                 .fechaVenta(ventaRequent.getFechaVenta())

@@ -16,4 +16,10 @@ public class ClienteServiceImpl implements ClienteService{
                 .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + idCliente + " no existe"));
     }
 
+    public ClienteDto guardarCliente(ClienteDto clienteDto){
+        if(clienteDto == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
+        return clienteClient.guardarCliente(clienteDto)
+                .orElseThrow(() -> new IllegalArgumentException("Hay un problema al intentar registrar al cliente "));
+    }
+
 }

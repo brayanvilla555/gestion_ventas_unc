@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TipoDocumentoDto {
+    private Long id;
     private String nombre;
     private String abreviatura;
 }

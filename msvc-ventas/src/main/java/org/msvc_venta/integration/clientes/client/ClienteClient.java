@@ -4,6 +4,7 @@ import org.msvc_venta.integration.clientes.model.dto.ClienteDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Optional;
 
@@ -14,4 +15,7 @@ import java.util.Optional;
 public interface ClienteClient {
     @GetMapping("/clientes/buscar/{id}")
     Optional<ClienteDto> buscarClientePorId(@PathVariable Long id);
+
+    @PostMapping("/clientes/guardar")
+    Optional<ClienteDto> guardarCliente(ClienteDto clienteDto);
 }
