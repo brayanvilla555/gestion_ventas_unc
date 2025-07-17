@@ -46,91 +46,110 @@ public class VentaServiceImpl implements VentaService{
     }
 
     @Override
-    public Venta guardar(Venta ventaRequent) {
-        if(ventaRequent == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
+    public Venta guardar(Venta ventaRequest) {
+        validarVentaNoNula(ventaRequest);
+        procesarClienteEnVenta(ventaRequest);
 
-        if(ventaRequent.getClieteId() == null && ventaRequent.getCliente() != null){
-            ventaRequent.getCliente().setId(null);
-            ClienteDto clienteDto = this.clienteService.guardarCliente(ventaRequent.getCliente());
-            if(clienteDto.getId() != null) {
-                ventaRequent.setClieteId(clienteDto.getId());
-            }else{
-                throw new IllegalArgumentException("El cliente no puede ser nulo");
-            }
-        }
-        ventaRequent.setId(null);
-        Venta nuevaVenta = Venta.builder()
-                .fechaVenta(ventaRequent.getFechaVenta())
-                .direccion(ventaRequent.getDireccion())
-                .clieteId(
-                        this.clienteService.existeCliente(ventaRequent.getClieteId()).getId()
-                )
-                .clieteId(ventaRequent.getClieteId())
-                .estado(ventaRequent.getEstado())
-                .itemsVenta(new ArrayList<>())
-                .build();
-        //agregamos los items a la venta
-        if(ventaRequent.getItemsVenta() != null) {
-            for (ItemVenta item : ventaRequent.getItemsVenta()){
-                //consultamos para ver si ese producto existe
-                ProductoDto existeProducto = this.productoService.existeProducto(item.getProductoId());
-                if(existeProducto == null) {
-                    throw new IllegalArgumentException("El producto con el id: " + item.getProductoId() + " no existe");
-                }
-                //verificamos si existe la cantidad en la tienda
-                boolean cantidadSuficiente = existeProducto.getStockTienda() >= item.getCantidad();
-                boolean precioCorrecto = Objects.equals(existeProducto.getPrecio(), item.getPrecio());
-                if(cantidadSuficiente && precioCorrecto){
-                    //calculamos sus montos
-                    item.calcularSubTotal();
-                    nuevaVenta.agregarItem(item);
-                    //actualizamos el stock en la tienda
-                    this.actualizarStockTienda(item.getProductoId(), item.getCantidad());
-                } else{
-                    throw new IllegalArgumentException("No hay suficiente stock o precio es incorrecto del producto con id: " + item.getProductoId());
-                }
+        Venta nuevaVenta = construirVentaBase(ventaRequest);
+        procesarItemsVenta(ventaRequest.getItemsVenta(), nuevaVenta);
+
+        Venta ventaGuardada = ventaRepository.save(nuevaVenta);
+
+        registrarCobro(ventaGuardada);
+
+        return ventaGuardada;
+    }
+
+    @Override
+    public Venta editar(Long id, Venta ventaRequest) {
+        if (id == null) throw new IllegalArgumentException("El id no puede ser nulo");
+        validarVentaNoNula(ventaRequest);
+
+        Venta ventaExistente = ventaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("La venta con id: " + id + " no existe"));
+
+        ClienteDto clienteDto = clienteService.existeCliente(ventaRequest.getClieteId());
+        ventaExistente.setClieteId(clienteDto.getId());
+        ventaExistente.setCliente(clienteDto);
+
+        ventaExistente.getItemsVenta().clear(); // elimina los anteriores (Hibernate lo manejará bien con orphanRemoval=true)
+        if (ventaRequest.getItemsVenta() != null) {
+            for (ItemVenta nuevoItem : ventaRequest.getItemsVenta()) {
+                nuevoItem.setVenta(ventaExistente); //mantener la relación bidireccional
+                nuevoItem.calcularSubTotal();
+                ventaExistente.getItemsVenta().add(nuevoItem);
             }
         }
 
-        Venta venta = ventaRepository.save(nuevaVenta);
-        //registramos el pago si la venta
-        CobroDto nuevoCobro = CobroDto.builder()
-                .ventaId(venta.getId())
-                .montoTotal(venta.getTotal())
-                .observaciones("Procesando el pago")
-                .build();
-        cobroService.registrarCobro(nuevoCobro);
+        ventaExistente.setEstado(ventaRequest.getEstado());
+        ventaExistente.setFechaVenta(ventaRequest.getFechaVenta());
+        ventaExistente.setDireccion(ventaRequest.getDireccion());
 
-         return venta;
+        return ventaRepository.save(ventaExistente);
     }
 
     private void actualizarStockTienda(Long idProducto, int cantidad){
         productoService.actualizarStockTienda(idProducto, cantidad);
     }
 
-    @Override
-    public Venta editar(Long id, Venta venta) {
-        if (id == null) throw new IllegalArgumentException("El id no puede ser nulo");
-        if (venta == null) throw new IllegalArgumentException("El cliente no puede ser nulo");
-
-        Venta buscarVenta = ventaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
-
-        ClienteDto clienteDto = this.clienteService.existeCliente(venta.getClieteId());
-        if(clienteDto.getId() != null) {
-            buscarVenta.setClieteId(clienteDto.getId());
-            buscarVenta.setCliente(clienteDto);
+    private void validarVentaNoNula(Venta venta) {
+        if (venta == null) {
+            throw new IllegalArgumentException("La venta no puede ser nula");
         }
-
-        buscarVenta.setId(id);
-        buscarVenta.setClieteId(venta.getClieteId());
-        buscarVenta.setItemsVenta(venta.getItemsVenta());
-        buscarVenta.setEstado(venta.getEstado());
-        buscarVenta.setTotal(venta.getTotal());
-        buscarVenta.setFechaVenta(venta.getFechaVenta());
-        buscarVenta.setDireccion(venta.getDireccion());
-        return ventaRepository.save(buscarVenta);
     }
+
+    private void procesarClienteEnVenta(Venta ventaRequest) {
+        if (ventaRequest.getClieteId() == null && ventaRequest.getCliente() != null) {
+            ventaRequest.getCliente().setId(null);
+            ClienteDto clienteDto = clienteService.guardarCliente(ventaRequest.getCliente());
+            if (clienteDto.getId() == null) {
+                throw new IllegalArgumentException("Error al registrar el cliente");
+            }
+            ventaRequest.setClieteId(clienteDto.getId());
+        }
+    }
+
+    private Venta construirVentaBase(Venta ventaRequest) {
+        return Venta.builder()
+                .fechaVenta(ventaRequest.getFechaVenta())
+                .direccion(ventaRequest.getDireccion())
+                .clieteId(clienteService.existeCliente(ventaRequest.getClieteId()).getId())
+                .estado(ventaRequest.getEstado())
+                .itemsVenta(new ArrayList<>())
+                .build();
+    }
+
+    private void procesarItemsVenta(List<ItemVenta> items, Venta venta) {
+        if (items == null) return;
+
+        for (ItemVenta item : items) {
+            ProductoDto producto = productoService.existeProducto(item.getProductoId());
+            if (producto == null) {
+                throw new IllegalArgumentException("Producto no encontrado: " + item.getProductoId());
+            }
+
+            boolean stockSuficiente = producto.getStockTienda() >= item.getCantidad();
+            boolean precioCorrecto = Objects.equals(producto.getPrecio(), item.getPrecio());
+
+            if (!stockSuficiente || !precioCorrecto) {
+                throw new IllegalArgumentException("Stock insuficiente o precio incorrecto para producto ID: " + item.getProductoId());
+            }
+
+            item.calcularSubTotal();
+            venta.agregarItem(item);
+            actualizarStockTienda(item.getProductoId(), item.getCantidad());
+        }
+    }
+
+    private void registrarCobro(Venta venta) {
+        CobroDto cobro = CobroDto.builder()
+                .ventaId(venta.getId())
+                .montoTotal(venta.getTotal())
+                .observaciones("Procesando el pago")
+                .build();
+        cobroService.registrarCobro(cobro);
+    }
+
 
     @Override
     public Venta buscarPorId(Long id) {
