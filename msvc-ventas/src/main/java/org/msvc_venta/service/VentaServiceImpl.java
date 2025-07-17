@@ -156,7 +156,7 @@ public class VentaServiceImpl implements VentaService{
         if (id == null) throw new IllegalArgumentException("El id no puede ser nulo");
 
         Venta venta = ventaRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("El cliente con el id: " + id + " no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("La venta con el id: " + id + " no existe"));
 
         ClienteDto clienteDto = this.clienteService.existeCliente(venta.getClieteId());
         venta.setCliente(clienteDto);
