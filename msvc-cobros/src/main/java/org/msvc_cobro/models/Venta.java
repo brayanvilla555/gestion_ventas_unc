@@ -2,7 +2,7 @@ package org.msvc_cobro.models;
 
 
 
-public class VentaDTO {
+public class Venta {
     private Long ventaId;
 
     private Double montoTotal;

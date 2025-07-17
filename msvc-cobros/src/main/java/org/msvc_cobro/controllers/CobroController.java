@@ -2,7 +2,7 @@ package org.msvc_cobro.controllers;
 
 
 import feign.FeignException;
-import org.msvc_cobro.models.VentaDTO;
+import org.msvc_cobro.models.Venta;
 import org.msvc_cobro.models.entity.Cobro;
 import org.msvc_cobro.services.CobroService;
 import org.msvc_cobro.utils.EstadoCobro;
@@ -82,7 +82,7 @@ public class CobroController {
 
     //MetodosRemotos para consultar si existe la venta y la caja
     @PostMapping("/generarCobro")
-    public ResponseEntity<?> generarCobro(@RequestBody VentaDTO ventaDTO){
+    public ResponseEntity<?> generarCobro(@RequestBody Venta ventaDTO){
         Optional<Cobro> cobroOp;
         try{
             cobroOp = cobroService.generarCobro(ventaDTO);
