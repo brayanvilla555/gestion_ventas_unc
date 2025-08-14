@@ -1,10 +1,13 @@
 package org.msvc_clientes.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.msvc_clientes.client.venta.VentaClient;
+import org.msvc_clientes.client.venta.pojo.Venta;
 import org.msvc_clientes.model.entity.Cliente;
 import org.msvc_clientes.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +16,11 @@ import java.util.Optional;
 public class ClienteServiceImpl implements ClienteService {
 
     @Autowired
+    private VentaClient ventaClient;
+
+    @Autowired
     private ClienteRepository clienteRepository;
+
 
     @Override
     public List<Cliente> clientes() {
@@ -66,5 +73,16 @@ public class ClienteServiceImpl implements ClienteService {
             return true;
         }
         return false;
+    }
+
+    //metodo remoto
+    @Override
+    public Optional<List<Venta>> listarVentasPorCliente(Long idCliente){
+        Optional<List<Venta>> ventas = ventaClient.listarVentasPorCliente(idCliente);
+        if (ventas.isPresent()){
+            return ventas;
+        }else{
+            throw new IllegalArgumentException("El cliente con el id: " + idCliente + " no existe");
+        }
     }
 }

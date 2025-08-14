@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.Optional;
 
 @FeignClient(
-        name = "msvc-clientes",
+        name = "msvc-ventas",
         url = "localhost:8090/msvc_clientes/api/v1/"
 )
 public interface ClienteClient {

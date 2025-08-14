@@ -177,4 +177,8 @@ public class VentaServiceImpl implements VentaService{
         }
         return false;
     }
+
+    public List<Venta> listarVentasPorCliente(Long idCliente){
+        return ventaRepository.findByClieteId(idCliente);
+    }
 }

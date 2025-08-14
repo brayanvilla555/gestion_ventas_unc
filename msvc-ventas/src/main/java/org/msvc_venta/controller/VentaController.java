@@ -81,4 +81,13 @@ public class VentaController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
+
+    @GetMapping("/cliente/{id}")
+    public ResponseEntity<List<Venta>> listarVentasPorCliente(@PathVariable Long id){
+        List<Venta> ventas = ventaService.listarVentasPorCliente(id);
+        if(ventas.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ventas);
+    }
 }

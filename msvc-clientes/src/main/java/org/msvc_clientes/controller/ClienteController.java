@@ -1,5 +1,6 @@
 package org.msvc_clientes.controller;
 
+import org.msvc_clientes.client.venta.pojo.Venta;
 import org.msvc_clientes.model.entity.Cliente;
 import org.msvc_clientes.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,4 +83,9 @@ public class ClienteController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
+    //meotdo remoto
+    @GetMapping("/listar-cliente-con-ventas/{idCliente}")
+    public ResponseEntity<List<Venta>> listarClientes(@PathVariable Long idCliente){
+        return ResponseEntity.ok(clienteService.listarVentasPorCliente(idCliente).get());
+    }
 }

@@ -1,8 +1,11 @@
 package org.msvc_clientes.service;
 
+import org.msvc_clientes.client.venta.pojo.Venta;
 import org.msvc_clientes.model.entity.Cliente;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClienteService {
 
@@ -20,5 +23,8 @@ public interface ClienteService {
 
     //eliminar
     Boolean eliminar(Long id);
+
+    //listar ventas del cliente
+    Optional<List<Venta>> listarVentasPorCliente(Long idCliente);
 
 }

@@ -15,4 +15,6 @@ public interface VentaService {
     Venta buscarPorId(Long id);
 
     boolean eliminar(Long id);
+
+    List<Venta> listarVentasPorCliente(Long idCliente);
 }
